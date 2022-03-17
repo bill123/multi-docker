@@ -1,0 +1,21 @@
+sudo: requied
+services: 
+  - docker 
+
+before_install:
+  - docker build -t johnyabu/react-test -f ./client/Dockerfile.dev
+
+script:
+  - docker run -e CI=true johnyabu/react-test npm test
+after_success:
+  - docker build -t johnyabu/multi-client  ./client
+  - docker build -t johnyabu/multi-nginx  ./nginx
+  - docker build -t johnyabu/multi-server ./server
+  - docker build -t johnyabu/multi-worker ./worker 
+#push images to dockerhub
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push johnyabu/multi-client
+  - docker push johnyabu/multi-nginx
+  - docker push johnyabu/multi-server
+  - docker push johnyabu/multi-worker 
